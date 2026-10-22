@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#075b35">
+<title>నా చిట్ లెక్కలు</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-locked">
+<header class="top">
+  <div class="brand"><div class="coin">₹</div><div><h1>నా చిట్ లెక్కలు</h1><p>సింపుల్ • తెలుగు • ఉచితం</p></div></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="menuBtn" id="authBtn" type="button">లాగిన్</button><button class="menuBtn" id="backupBtn">బ్యాకప్ తీసుకోండి</button></div>
+</header>
+<div class="layout">
+<aside class="side">
+  <button class="nav active" data-page="home">🏠 హోమ్ పేజీ</button>
+  <button class="nav" data-page="chits">📊 చిట్లు</button>
+  <button class="nav" data-page="members">👥 సభ్యులు</button>
+  <button class="nav" data-page="payments">🗓️ నెలవారీ వసూళ్లు</button>
+  <button class="nav" data-page="whatsapp">🟢 WhatsApp సందేశం</button>
+  <button class="nav" data-page="backup">💾 బ్యాకప్ / తిరిగి పెట్టు</button>
+  <p class="hint">గమనిక: డేటా ఈ పరికరంలోని బ్రౌజర్‌లో సేవ్ అవుతుంది. బ్యాకప్‌ను తరచూ తీసుకోండి.</p>
+</aside>
+<main id="app"></main>
+</div>
+<div id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.CHIT_SUPABASE_URL='https://odggqwxzqlyyalrdyzbm.supabase.co';window.CHIT_SUPABASE_PUBLISHABLE_KEY='sb_publishable_g9Vna0H2WZ8ahS79gwHZWg_dns1btMx'</script>
+<script src="app.js"></script>
+</body>
+</html>
