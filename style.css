@@ -12,3 +12,28 @@ button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#123b2b;color:white;padding:12px 18px;border-radius:10px;display:none;max-width:90%;z-index:9}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.side{position:static;display:flex;overflow:auto;gap:5px}.nav{white-space:nowrap;width:auto}.hint{display:none}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.list{grid-template-columns:1fr}}
 @media(max-width:520px){.top{padding:12px}.coin{width:43px;height:43px}.menuBtn{font-size:12px;padding:9px}.layout{padding:0 10px;margin:10px auto;gap:10px}.side{padding:6px}.nav{padding:10px;font-size:12px}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.pageHead h2{font-size:21px}.panel{padding:12px}.stat{padding:12px}}
+
+/* చిట్ పేర్లు, సభ్యుల పేర్లు స్పష్టంగా కనిపించడానికి */
+.item h3 {
+  font-size: 20px;
+  font-weight: 900;
+  color: #064629;
+}
+
+.panel h3 {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.item p {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+td {
+  font-weight: 600;
+}
+
+th {
+  font-weight: 800;
+}
