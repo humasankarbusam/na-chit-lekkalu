@@ -67,3 +67,9 @@ tr[data-member-row] td:nth-child(2) {
   font-weight: 900 !important;
   color: #064629 !important;
 }
+/* అన్ని పట్టికల్లో రెండో కాలమ్ పేర్లు బోల్డ్‌గా */
+table td:nth-child(2) {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  color: #064629 !important;
+}
