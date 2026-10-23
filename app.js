@@ -61,9 +61,57 @@ function allMonths(from,to){let out=[];if(!from||!to||from>to)return out;let [y,
 function totalDue(m,upto=monthNow()){let c=chit(m.chitId);if(!c||!m.joinMonth)return 0;return allMonths(m.joinMonth,upto).reduce((s,mo)=>s+(paidFor(m.id,mo)?.amount||0)-dueFor(m,mo),0)*-1}
 function totals(){let dues=0,paid=0;db.members.forEach(m=>{let c=chit(m.chitId);if(!c||!m.joinMonth)return;allMonths(m.joinMonth,monthNow()).forEach(mo=>{dues+=dueFor(m,mo);paid+=Number(paidFor(m.id,mo)?.amount||0)})});return {dues,paid,arrears:Math.max(0,dues-paid)}}
 function head(title,button=''){return `<div class="pageHead"><h2>${title}</h2>${button}</div>`}
-function stat(label,num,color){return `<div class="stat ${color}"><div class="label">${label}</div><div class="num">${num}</div></div>`}
+function stat(label,num,color,action=''){
+  return `<div class="stat ${color}" ${action?`data-stat="${action}" role="button" tabindex="0"`:''}>
+    <div class="label">${label}</div>
+    <div class="num">${num}</div>
+  </div>`;
+}
 function render(){document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===page));let root=document.getElementById('app');root.innerHTML=({home:homePage,chits:chitsPage,members:membersPage,payments:paymentsPage,reports:reportsPage,whatsapp:whatsappPage,backup:backupPage}[page]||homePage)();wire()}
-function homePage(){let t=totals();return `${head('హోమ్ పేజీ',`<button class="primary" data-go="chits">＋ కొత్త చిట్</button>`)}<div class="cards">${stat('మొత్తం చిట్లు',db.chits.length,'blue')}${stat('మొత్తం సభ్యులు',db.members.length,'green')}${stat('మొత్తం వసూళ్లు',money(t.paid),'orange')}${stat('రావాల్సిన బకాయి',money(t.arrears),'red')}</div><div class="panel"><h3>త్వరిత పనులు</h3><div class="actions"><button class="primary" data-go="members">＋ కొత్త సభ్యుడు</button><button class="secondary" data-go="payments">✓ నెలవారీ వసూళ్లు నమోదు</button><button class="secondary" data-go="whatsapp">🟢 WhatsApp రిమైండర్</button></div></div><div class="panel"><h3>ఇటీవలి చెల్లింపులు</h3>${db.payments.length?`<div class="tablewrap"><table><thead><tr><th>నెల</th><th>సభ్యుడు</th><th>చిట్</th><th>చెల్లించినది</th></tr></thead><tbody>${db.payments.slice().sort((a,b)=>b.createdAt-a.createdAt).slice(0,8).map(p=>`<tr><td>${esc(monthLabel(p.month))}</td><td>${esc(member(p.memberId)?.name||'తొలగించిన సభ్యుడు')}</td><td>${esc(chit(member(p.memberId)?.chitId)?.name||'-')}</td><td>${money(p.amount)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">ఇంకా చెల్లింపులు నమోదు చేయలేదు.</div>`}</div><p class="small">ముఖ్యమైనది: ఇది ప్రారంభ వెర్షన్. మీ వివరాలు ఈ బ్రౌజర్‌లోనే ఉంటాయి. వేరే ఫోన్‌లో కనిపించాలంటే ఆన్‌లైన్ సింక్ ఏర్పాటు చేయాలి.</p>`}
+
+function homePage(){
+  const mo=window.reportMonth||monthNow();
+  const cid=window.reportChit||'';
+  const rows=reportRows('monthly',mo,cid);
+  const paid=rows.reduce((s,r)=>s+r.paid,0);
+  const arrears=rows.reduce((s,r)=>s+r.balance,0);
+
+  return `${head('హోమ్ పేజీ',`<button class="primary" data-go="chits">＋ కొత్త చిట్</button>`)}
+  <div class="panel">
+    <div class="filters">
+      <div class="field">
+        <label>నెల ఎంచుకోండి</label>
+        <input class="filter" type="month" id="homeMonth" value="${mo}">
+      </div>
+      <div class="field">
+        <label>చిట్ ఎంచుకోండి</label>
+        <select class="filter" id="homeChit">
+          <option value="">అన్ని చిట్లు</option>
+          ${db.chits.map(c=>`<option value="${c.id}" ${cid===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <p class="small">నెల, చిట్ ఎంచుకుంటే ఆ నెల లెక్కలు మాత్రమే కనిపిస్తాయి.</p>
+  </div>
+  <div class="cards">
+    ${stat('మొత్తం చిట్లు',db.chits.length,'blue','chits')}
+    ${stat('మొత్తం సభ్యులు',db.members.length,'green','members')}
+    ${stat('నెలవారీ వసూళ్లు',money(paid),'orange','collections')}
+    ${stat('నెలవారీ బకాయిలు',money(arrears),'red','dues')}
+  </div>
+  <div class="panel">
+    <h3>త్వరిత పనులు</h3>
+    <div class="actions">
+      <button class="primary" data-go="members">＋ కొత్త సభ్యుడు</button>
+      <button class="secondary" data-go="payments">✓ నెలవారీ వసూళ్లు నమోదు</button>
+      <button class="secondary" data-go="whatsapp">🟢 WhatsApp రిమైండర్</button>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>ఇటీవలి చెల్లింపులు</h3>
+    ${db.payments.length?`<div class="tablewrap"><table><thead><tr><th>నెల</th><th>సభ్యుడు</th><th>చిట్</th><th>చెల్లించినది</th></tr></thead><tbody>${db.payments.slice().sort((a,b)=>b.createdAt-a.createdAt).slice(0,8).map(p=>`<tr><td>${esc(monthLabel(p.month))}</td><td>${esc(member(p.memberId)?.name||'తొలగించిన సభ్యుడు')}</td><td>${esc(chit(member(p.memberId)?.chitId)?.name||'-')}</td><td>${money(p.amount)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">ఇంకా చెల్లింపులు నమోదు చేయలేదు.</div>`}
+  </div>`;
+}
 function chitsPage(){return `${head('చిట్లు',`<button class="primary" data-action="new-chit">＋ కొత్త చిట్</button>`)}${db.chits.length?`<div class="list">${db.chits.map(c=>`<div class="item"><span class="tag">${db.members.filter(m=>m.chitId===c.id).length} సభ్యులు</span><h3>${esc(c.name)}</h3><p><b>${money(c.amount)}</b></p><p>చిట్‌కు ముందు: ${money(c.beforeRate)} / నెల</p><p>చిట్ తీసుకున్న తర్వాత: ${money(c.afterRate)} / నెల</p><div class="formactions"><button class="secondary" data-edit-chit="${c.id}">మార్చు</button><button class="danger" data-del-chit="${c.id}">తొలగించు</button></div></div>`).join('')}</div>`:`<div class="panel empty">ఇంకా చిట్లు లేవు. “కొత్త చిట్” నొక్కండి.</div>`}<div id="editor"></div>`}
 function chitForm(c={}){return `<div class="panel"><h3>${c.id?'చిట్ వివరాలు మార్చండి':'కొత్త చిట్ నమోదు'}</h3><form id="chitForm"><input type="hidden" name="id" value="${esc(c.id||'')}"><div class="formgrid"><div class="field"><label>చిట్ పేరు / నంబర్</label><input name="name" required placeholder="ఉదా: CH001 - 50 వేల చిట్" value="${esc(c.name||'')}"></div><div class="field"><label>చిట్ మొత్తం (₹)</label><input name="amount" type="number" min="1" required value="${esc(c.amount||50000)}"></div><div class="field"><label>చిట్ తీసుకునే ముందు నెల కిస్తీ (₹)</label><input name="beforeRate" type="number" min="0" required value="${esc(c.beforeRate||2500)}"></div><div class="field"><label>చిట్ తీసుకున్న తర్వాత నెల కిస్తీ (₹)</label><input name="afterRate" type="number" min="0" required value="${esc(c.afterRate||3000)}"></div><div class="field"><label>మొత్తం సభ్యుల సంఖ్య</label><input name="count" type="number" min="1" value="${esc(c.count||20)}"></div></div><div class="formactions"><button class="primary">సేవ్ చేయండి</button><button type="button" class="secondary" data-cancel-editor>రద్దు</button></div></form></div>`}
 function membersPage(){return `${head('సభ్యులు',`<button class="primary" data-action="new-member">＋ కొత్త సభ్యుడు</button>`)}<div class="filters"><input class="filter" id="memberSearch" placeholder="పేరు లేదా ఫోన్‌తో వెతకండి"><select class="filter" id="memberChitFilter"><option value="">అన్ని చిట్లు</option>${db.chits.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div><div id="memberList">${memberRows()}</div><div id="editor"></div>`}
@@ -112,8 +160,33 @@ function exportReportCSV(){
 
 function whatsappPage(){return `${head('WhatsApp సందేశం')}<div class="panel"><h3>బకాయి రిమైండర్ పంపండి</h3><form id="waForm"><div class="formgrid"><div class="field"><label>సభ్యుడిని ఎంచుకోండి</label><select name="memberId" required>${db.members.map(m=>`<option value="${m.id}">${esc(m.name)} — ${esc(m.phone)}</option>`).join('')}</select></div><div class="field"><label>ఏ నెలకు?</label><input type="month" name="month" value="${monthNow()}" required></div><div class="field wide"><label>సందేశం</label><textarea name="message" id="waMessage">నమస్కారం. మీ చిట్ కిస్తీ వివరాలు తెలియజేస్తున్నాము.</textarea></div></div><div class="formactions"><button class="primary">WhatsApp తెరవండి</button></div></form><p class="small">WhatsApp తెరిచిన తర్వాత సందేశాన్ని పరిశీలించి మీరు స్వయంగా పంపాలి. ఇది ఆటోమేటిక్‌గా పంపదు.</p></div>`}
 function backupPage(){return `${head('బ్యాకప్ / తిరిగి పెట్టు')}<div class="panel"><h3>మీ డేటాను భద్రంగా ఉంచండి</h3><p>బ్యాకప్ ఫైల్‌లో చిట్లు, సభ్యులు, చెల్లింపులు ఉంటాయి.</p><div class="formactions"><button class="primary" id="exportBtn">బ్యాకప్ డౌన్‌లోడ్</button><label class="secondary" style="display:inline-block;padding:11px 14px;border-radius:10px;cursor:pointer">బ్యాకప్ తిరిగి పెట్టు <input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div><div class="panel"><h3>డేటా తొలగింపు</h3><p class="small">இது మీ இந்த browser-ல் உள்ள data மட்டும் తొలగిస్తుంది. ముందుగా బ్యాకప్ తీసుకోండి.</p><button class="danger" id="clearBtn">అన్ని వివరాలు తొలగించు</button></div><div class="panel"><h3>ఉచిత వినియోగం గురించి</h3><p>ఈ వెర్షన్‌కు చందా అవసరం లేదు. అయితే డేటా ప్రస్తుతం ఒకే పరికరంలో ఉంటుంది. కంప్యూటర్, మొబైల్ రెండింటిలో ఒకే డేటా వాడాలంటే క్లౌడ్ డేటాబేస్ కనెక్షన్ తర్వాత ఏర్పాటు చేయాలి.</p></div>`}
-function wire(){document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));document.querySelectorAll('[data-action="new-chit"]').forEach(b=>b.onclick=()=>{document.getElementById('editor').innerHTML=chitForm();wire()});document.querySelectorAll('[data-action="new-member"]').forEach(b=>b.onclick=()=>{if(!db.chits.length){toast('ముందుగా చిట్ సృష్టించండి');go('chits');return}document.getElementById('editor').innerHTML=memberForm();wire()});document.querySelectorAll('[data-cancel-editor]').forEach(b=>b.onclick=()=>document.getElementById('editor').innerHTML='');
-let cf=document.getElementById('chitForm');if(cf)cf.onsubmit=e=>{e.preventDefault();cf.dataset.handled='1';let f=new FormData(cf),id=f.get('id'),o={id:id||uid('CH'),name:f.get('name').trim(),amount:+f.get('amount'),beforeRate:+f.get('beforeRate'),afterRate:+f.get('afterRate'),count:+f.get('count')||20};if(id)db.chits[db.chits.findIndex(x=>x.id===id)]=o;else db.chits.push(o);save()};
+
+function wire(){
+document.querySelectorAll('[data-stat]').forEach(b=>{
+  b.onclick=()=>{
+    const action=b.dataset.stat;
+    if(action==='chits') go('chits');
+    else if(action==='members') go('members');
+    else if(action==='collections'||action==='dues'){
+      window.reportType='monthly';
+      go('reports');
+    }
+  };
+});
+
+let hm=document.getElementById('homeMonth');
+let hc=document.getElementById('homeChit');
+
+function refreshHome(){
+  window.reportMonth=hm?.value||monthNow();
+  window.reportChit=hc?.value||'';
+  render();
+}
+
+if(hm)hm.onchange=refreshHome;
+if(hc)hc.onchange=refreshHome;
+let cf=document.getElementById('chitForm');
+if(cf)cf.onsubmit=e=>{e.preventDefault();cf.dataset.handled='1';let f=new FormData(cf),id=f.get('id'),o={id:id||uid('CH'),name:f.get('name').trim(),amount:+f.get('amount'),beforeRate:+f.get('beforeRate'),afterRate:+f.get('afterRate'),count:+f.get('count')||20};if(id)db.chits[db.chits.findIndex(x=>x.id===id)]=o;else db.chits.push(o);save()};
 let mf=document.getElementById('memberForm');if(mf)mf.onsubmit=e=>{e.preventDefault();mf.dataset.handled='1';let f=new FormData(mf),id=f.get('id'),o={id:id||uid('MB'),name:f.get('name').trim(),phone:f.get('phone').trim(),chitId:f.get('chitId'),joinMonth:f.get('joinMonth'),takenMonth:f.get('takenMonth'),address:f.get('address')};if(id)db.members[db.members.findIndex(x=>x.id===id)]=o;else db.members.push(o);save()};
 document.querySelectorAll('[data-edit-chit]').forEach(b=>b.onclick=()=>{document.getElementById('editor').innerHTML=chitForm(chit(b.dataset.editChit));wire()});document.querySelectorAll('[data-del-chit]').forEach(b=>b.onclick=()=>{let id=b.dataset.delChit;if(db.members.some(m=>m.chitId===id)){toast('ఈ చిట్‌కు సభ్యులు ఉన్నారు; ముందుగా వారిని మార్చండి/తొలగించండి');return}if(confirm('ఈ చిట్ తొలగించాలా?')){db.chits=db.chits.filter(c=>c.id!==id);save()}});
 document.querySelectorAll('[data-edit-member]').forEach(b=>b.onclick=()=>{document.getElementById('editor').innerHTML=memberForm(member(b.dataset.editMember));wire()});document.querySelectorAll('[data-del-member]').forEach(b=>b.onclick=()=>{let id=b.dataset.delMember;if(confirm('ఈ సభ్యుడిని, వారి చెల్లింపులను తొలగించాలా?')){db.members=db.members.filter(m=>m.id!==id);db.payments=db.payments.filter(p=>p.memberId!==id);save()}});
