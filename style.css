@@ -61,3 +61,9 @@ th {
   font-size: 20px;
   font-weight: 900;
 }
+/* సభ్యుల పేర్లు స్పష్టంగా, బోల్డ్‌గా */
+tr[data-member-row] td:nth-child(2) {
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  color: #064629 !important;
+}
