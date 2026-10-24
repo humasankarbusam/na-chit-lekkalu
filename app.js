@@ -207,6 +207,34 @@ document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>go(b.dataset.page));d
 if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 render();
 
+// Reliable delegated handlers for navigation and the primary action buttons.
+// These must be delegated because render() replaces the page HTML each time.
+document.addEventListener('click', function(e){
+  const goButton = e.target.closest('[data-go]');
+  if (goButton) { e.preventDefault(); go(goButton.dataset.go); return; }
+
+  const actionButton = e.target.closest('[data-action]');
+  if (actionButton) {
+    e.preventDefault();
+    const editor = document.getElementById('editor');
+    if (actionButton.dataset.action === 'new-chit') {
+      if (editor) { editor.innerHTML = chitForm(); wire(); editor.scrollIntoView({behavior:'smooth', block:'start'}); }
+      return;
+    }
+    if (actionButton.dataset.action === 'new-member') {
+      if (!db.chits.length) { toast('ముందుగా ఒక చిట్ నమోదు చేయండి'); go('chits'); return; }
+      if (editor) { editor.innerHTML = memberForm(); wire(); editor.scrollIntoView({behavior:'smooth', block:'start'}); }
+      return;
+    }
+  }
+
+  if (e.target.closest('[data-cancel-editor]')) {
+    e.preventDefault();
+    const editor = document.getElementById('editor');
+    if (editor) editor.innerHTML = '';
+  }
+});
+
 // Safety net: handle dynamically inserted forms even if their individual listeners are missed.
 document.addEventListener('submit', function(e){
   if(e.target && e.target.id==='chitForm' && !e.target.dataset.handled){
