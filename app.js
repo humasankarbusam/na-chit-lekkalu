@@ -367,6 +367,7 @@ document.addEventListener('submit', function(e){
   lock();
   if(!client){msg.textContent='Supabase కనెక్షన్ ప్రారంభం కాలేదు. ఇంటర్నెట్ కనెక్షన్ తనిఖీ చేయండి.';}
 })();
+```javascript
 function showChitDetails(chitId) {
   const chit = db.chits.find(c => String(c.id) === String(chitId));
 
@@ -375,6 +376,135 @@ function showChitDetails(chitId) {
     return;
   }
 
+  const members = db.members.filter(
+    m => String(m.chitId) === String(chit.id)
+  );
+
+  const totalMonths = monthCountInclusive(
+    chit.startMonth,
+    chit.endMonth
+  );
+
+  const editor = document.getElementById('editor');
+
+  if (!editor) {
+    toast('వివరాలు చూపించే స్థలం కనబడలేదు');
+    return;
+  }
+
+  const details = [
+    ['చిట్ పేరు / నంబర్', esc(chit.name)],
+    ['చిట్ మొత్తం', money(chit.amount)],
+    ['చిట్‌కు ముందు నెల కిస్తీ', money(chit.beforeRate)],
+    ['చిట్ తీసుకున్న తర్వాత నెల కిస్తీ', money(chit.afterRate)],
+    ['ప్రారంభ నెల', esc(monthLabel(chit.startMonth) || 'నమోదు చేయలేదు')],
+    ['ముగింపు నెల', esc(monthLabel(chit.endMonth) || 'నమోదు చేయలేదు')],
+    ['మొత్తం నెలలు', totalMonths || 'నమోదు చేయలేదు'],
+    ['మొత్తం సభ్యులు', members.length]
+  ];
+
+  editor.innerHTML = `
+    <div class="panel">
+      <h2 style="font-size:28px;font-weight:900;color:#123b2b;">
+        📋 చిట్ పూర్తి వివరాలు
+      </h2>
+
+      <style>
+        .chit-details-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 14px;
+          margin: 20px 0;
+        }
+        .chit-detail-box {
+          box-sizing: border-box;
+          background: #e8f7ed;
+          border: 2px solid #168447;
+          border-radius: 12px;
+          padding: 16px;
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+        .chit-detail-label {
+          color: #24643d;
+          font-size: 16px;
+          font-weight: 800;
+          margin-bottom: 8px;
+        }
+        .chit-detail-value {
+          color: #123b2b;
+          font-size: 21px;
+          font-weight: 900;
+        }
+        @media (max-width: 480px) {
+          .chit-details-grid {
+            gap: 8px;
+          }
+          .chit-detail-box {
+            padding: 10px;
+          }
+          .chit-detail-label {
+            font-size: 14px;
+          }
+          .chit-detail-value {
+            font-size: 17px;
+          }
+        }
+      </style>
+
+      <div class="chit-details-grid">
+        ${details.map(([label, value]) => `
+          <div class="chit-detail-box">
+            <div class="chit-detail-label">${label}</div>
+            <div class="chit-detail-value">${value}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <hr>
+      <h3 style="font-size:22px;font-weight:900;">👥 సభ్యుల పూర్తి జాబితా</h3>
+
+      ${members.length ? `
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>నం.</th>
+                <th>సభ్యుడి పేరు</th>
+                <th>ఫోన్ నంబర్</th>
+                <th>చేరిన నెల</th>
+                <th>చిట్ తీసుకున్న నెల</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${members.map((m, i) => `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td>${esc(m.name || '-')}</td>
+                  <td>${esc(m.phone || '-')}</td>
+                  <td>${esc(monthLabel(m.joinMonth) || '-')}</td>
+                  <td>${esc(monthLabel(m.takenMonth) || '-')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : `<p>ఈ చిట్‌కు ఇంకా సభ్యులను నమోదు చేయలేదు.</p>`}
+
+      <div class="formactions">
+        <button class="secondary" data-close-chit-details>
+          ← చిట్ల జాబితాకు తిరిగి వెళ్లండి
+        </button>
+      </div>
+    </div>
+  `;
+
+  editor.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+```
   const members = db.members.filter(
     m => String(m.chitId) === String(chit.id)
   );
