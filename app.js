@@ -459,10 +459,8 @@ function showChitDetails(chitId) {
           </div>
         `).join('')}
       </div>
-
       <hr>
       <h3 style="font-size:22px;font-weight:900;">👥 సభ్యుల పూర్తి జాబితా</h3>
-
       ${members.length ? `
         <div class="tablewrap">
           <table>
@@ -497,33 +495,12 @@ function showChitDetails(chitId) {
       </div>
     </div>
   `;
-
-  editor.scrollIntoView({
+   editor.scrollIntoView({
     behavior: 'smooth',
     block: 'start'
   });
 }
-  const members = db.members.filter(
-    m => String(m.chitId) === String(chit.id)
-  );
-
-  const totalMonths = monthCountInclusive(
-    chit.startMonth,
-    chit.endMonth
-  );
-
-  const editor = document.getElementById('editor');
-
-  if (!editor) {
-    toast('వివరాలు చూపించే స్థలం కనబడలేదు');
-    return;
-  }
-
-  editor.innerHTML = `
-    <div class="panel">
-      <h2>📋 చిట్ పూర్తి వివరాలు</h2>
-
-      <p><b>చిట్ పేరు / నంబర్:</b> ${esc(chit.name)}</p>
+ <p><b>చిట్ పేరు / నంబర్:</b> ${esc(chit.name)}</p>
       <p><b>చిట్ మొత్తం:</b> ${money(chit.amount)}</p>
       <p><b>చిట్‌కు ముందు నెల కిస్తీ:</b> ${money(chit.beforeRate)}</p>
       <p><b>చిట్ తీసుకున్న తర్వాత నెల కిస్తీ:</b> ${money(chit.afterRate)}</p>
