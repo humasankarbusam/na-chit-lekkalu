@@ -230,12 +230,15 @@ function go(p){page=p;render();window.scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>go(b.dataset.page));document.getElementById('backupBtn').onclick=exportDB;
 if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 render();
-
 // Reliable delegated handlers for navigation and the primary action buttons.
-// These must be delegated because render() replaces the page HTML each time.
-document.addEventListener('click', function(e){
+document.addEventListener('click', function(e) {
   const goButton = e.target.closest('[data-go]');
-  if (goButton) { e.preventDefault(); go(goButton.dataset.go); return; }
+  if (goButton) {
+    e.preventDefault();
+    go(goButton.dataset.go);
+    return;
+  }
+
   // చిట్‌పై క్లిక్ చేసినప్పుడు పూర్తి వివరాలు తెరవాలి
   const viewChit = e.target.closest('[data-view-chit]');
 
@@ -252,8 +255,10 @@ document.addEventListener('click', function(e){
     showChitDetails(viewChit.dataset.viewChit);
     return;
   }
-    // చిట్ వివరాలు మూసి చిట్ల జాబితాకు తిరిగి వెళ్లడం
+
+  // చిట్ వివరాలు మూసి చిట్ల జాబితాకు తిరిగి వెళ్లడం
   const closeDetails = e.target.closest('[data-close-chit-details]');
+
   if (closeDetails) {
     e.preventDefault();
     const editor = document.getElementById('editor');
@@ -362,7 +367,6 @@ document.addEventListener('submit', function(e){
   lock();
   if(!client){msg.textContent='Supabase కనెక్షన్ ప్రారంభం కాలేదు. ఇంటర్నెట్ కనెక్షన్ తనిఖీ చేయండి.';}
 })();
-```javascript
 function showChitDetails(chitId) {
   const chit = db.chits.find(c => String(c.id) === String(chitId));
 
@@ -444,4 +448,3 @@ function showChitDetails(chitId) {
     block: 'start'
   });
 }
-```
