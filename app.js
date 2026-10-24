@@ -450,7 +450,6 @@ function showChitDetails(chitId) {
           }
         }
       </style>
-
       <div class="chit-details-grid">
         ${details.map(([label, value]) => `
           <div class="chit-detail-box">
@@ -496,59 +495,6 @@ function showChitDetails(chitId) {
     </div>
   `;
    editor.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
-  });
-}
- <p><b>చిట్ పేరు / నంబర్:</b> ${esc(chit.name)}</p>
-      <p><b>చిట్ మొత్తం:</b> ${money(chit.amount)}</p>
-      <p><b>చిట్‌కు ముందు నెల కిస్తీ:</b> ${money(chit.beforeRate)}</p>
-      <p><b>చిట్ తీసుకున్న తర్వాత నెల కిస్తీ:</b> ${money(chit.afterRate)}</p>
-
-      <p><b>ప్రారంభ నెల:</b> ${esc(monthLabel(chit.startMonth) || 'నమోదు చేయలేదు')}</p>
-      <p><b>ముగింపు నెల:</b> ${esc(monthLabel(chit.endMonth) || 'నమోదు చేయలేదు')}</p>
-      <p><b>మొత్తం నెలలు:</b> ${totalMonths || 'నమోదు చేయలేదు'}</p>
-      <p><b>మొత్తం సభ్యులు:</b> ${members.length}</p>
-
-      <hr>
-      <h3>👥 సభ్యుల పూర్తి జాబితా</h3>
-
-      ${members.length ? `
-        <div class="tablewrap">
-          <table>
-            <thead>
-              <tr>
-                <th>నం.</th>
-                <th>సభ్యుడి పేరు</th>
-                <th>ఫోన్ నంబర్</th>
-                <th>చేరిన నెల</th>
-                <th>చిట్ తీసుకున్న నెల</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${members.map((m, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td>${esc(m.name || '-')}</td>
-                  <td>${esc(m.phone || '-')}</td>
-                  <td>${esc(monthLabel(m.joinMonth) || '-')}</td>
-                  <td>${esc(monthLabel(m.takenMonth) || '-')}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      ` : `<p>ఈ చిట్‌కు ఇంకా సభ్యులను నమోదు చేయలేదు.</p>`}
-
-      <div class="formactions">
-        <button class="secondary" data-close-chit-details>
-          ← చిట్ల జాబితాకు తిరిగి వెళ్లండి
-        </button>
-      </div>
-    </div>
-  `;
-
-  editor.scrollIntoView({
     behavior: 'smooth',
     block: 'start'
   });
