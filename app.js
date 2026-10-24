@@ -367,7 +367,6 @@ document.addEventListener('submit', function(e){
   lock();
   if(!client){msg.textContent='Supabase కనెక్షన్ ప్రారంభం కాలేదు. ఇంటర్నెట్ కనెక్షన్ తనిఖీ చేయండి.';}
 })();
-```javascript
 function showChitDetails(chitId) {
   const chit = db.chits.find(c => String(c.id) === String(chitId));
 
