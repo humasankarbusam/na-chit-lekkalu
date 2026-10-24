@@ -504,7 +504,6 @@ function showChitDetails(chitId) {
     block: 'start'
   });
 }
-```
   const members = db.members.filter(
     m => String(m.chitId) === String(chit.id)
   );
