@@ -113,7 +113,31 @@ function homePage(){
     ${db.payments.length?`<div class="tablewrap"><table><thead><tr><th>నెల</th><th>సభ్యుడు</th><th>చిట్</th><th>చెల్లించినది</th></tr></thead><tbody>${db.payments.slice().sort((a,b)=>b.createdAt-a.createdAt).slice(0,8).map(p=>`<tr><td>${esc(monthLabel(p.month))}</td><td>${esc(member(p.memberId)?.name||'తొలగించిన సభ్యుడు')}</td><td>${esc(chit(member(p.memberId)?.chitId)?.name||'-')}</td><td>${money(p.amount)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">ఇంకా చెల్లింపులు నమోదు చేయలేదు.</div>`}
   </div>`;
 }
-function chitsPage(){return `${head('చిట్లు',`<button class="primary" data-action="new-chit">＋ కొత్త చిట్</button>`)}${db.chits.length?`<div class="list">${db.chits.map(c=>`<div class="item"><span class="tag">${db.members.filter(m=>m.chitId===c.id).length} సభ్యులు</span><h3>${esc(c.name)}</h3><p><b>${money(c.amount)}</b></p><p>చిట్‌కు ముందు: ${money(c.beforeRate)} / నెల</p><p>చిట్ తీసుకున్న తర్వాత: ${money(c.afterRate)} / నెల</p><p>📅 Starting Month: ${esc(monthLabel(c.startMonth)||'నమోదు చేయలేదు')}</p><p>📅 Ending Month: ${esc(monthLabel(c.endMonth)||'నమోదు చేయలేదు')}</p><p><b>మొత్తం చిట్ కాలం: ${monthCountInclusive(c.startMonth,c.endMonth)||'—'} ${monthCountInclusive(c.startMonth,c.endMonth)?'నెలలు':''}</b></p><div class="formactions"><button class="secondary" data-edit-chit="${c.id}">మార్చు</button><button class="danger" data-del-chit="${c.id}">తొలగించు</button></div></div>`).join('')}</div>`:`<div class="panel empty">ఇంకా చిట్లు లేవు. “కొత్త చిట్” నొక్కండి.</div>`}<div id="editor"></div>`}
+function chitsPage(){
+  return `${head('చిట్లు',`<button class="primary" data-action="new-chit">＋ కొత్త చిట్</button>`)}
+  ${db.chits.length ? `
+    <div class="list">
+      ${db.chits.map(c=>`
+        <div class="item" data-view-chit="${esc(c.id)}" style="cursor:pointer">
+          <span class="tag">${db.members.filter(m=>String(m.chitId)===String(c.id)).length} సభ్యులు</span>
+          <h3>${esc(c.name)}</h3>
+          <p><b>${money(c.amount)}</b></p>
+          <p>చిట్‌కు ముందు: ${money(c.beforeRate)} / నెల</p>
+          <p>చిట్ తీసుకున్న తర్వాత: ${money(c.afterRate)} / నెల</p>
+          <p>📅 ప్రారంభ నెల: ${esc(monthLabel(c.startMonth)||'నమోదు చేయలేదు')}</p>
+          <p>📅 ముగింపు నెల: ${esc(monthLabel(c.endMonth)||'నమోదు చేయలేదు')}</p>
+          <p><b>మొత్తం చిట్ కాలం: ${monthCountInclusive(c.startMonth,c.endMonth)||'—'} ${monthCountInclusive(c.startMonth,c.endMonth)?'నెలలు':''}</b></p>
+          <p style="color:#168447">👆 పూర్తి వివరాల కోసం క్లిక్ చేయండి</p>
+          <div class="formactions">
+            <button class="secondary" data-edit-chit="${esc(c.id)}">మార్చు</button>
+            <button class="danger" data-del-chit="${esc(c.id)}">తొలగించు</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  ` : `<div class="panel empty">ఇంకా చిట్లు లేవు. “కొత్త చిట్” నొక్కండి.</div>`}
+  <div id="editor"></div>`;
+}
 function chitForm(c={}){return `<div class="panel"><h3>${c.id?'చిట్ వివరాలు మార్చండి':'కొత్త చిట్ నమోదు'}</h3><form id="chitForm"><input type="hidden" name="id" value="${esc(c.id||'')}"><div class="formgrid"><div class="field"><label>చిట్ పేరు / నంబర్</label><input name="name" required placeholder="ఉదా: CH001 - 50 వేల చిట్" value="${esc(c.name||'')}"></div><div class="field"><label>చిట్ మొత్తం (₹)</label><input name="amount" type="number" min="1" required value="${esc(c.amount||50000)}"></div><div class="field"><label>చిట్ తీసుకునే ముందు నెల కిస్తీ (₹)</label><input name="beforeRate" type="number" min="0" required value="${esc(c.beforeRate||2500)}"></div><div class="field"><label>చిట్ తీసుకున్న తర్వాత నెల కిస్తీ (₹)</label><input name="afterRate" type="number" min="0" required value="${esc(c.afterRate||3000)}"></div><div class="field"><label>మొత్తం సభ్యుల సంఖ్య</label><input name="count" type="number" min="1" value="${esc(c.count||20)}"></div><div class="field"><label>📅 Starting Month (ప్రారంభ నెల)</label><input name="startMonth" type="month" required value="${esc(c.startMonth||'')}"></div><div class="field"><label>📅 Ending Month (ముగింపు నెల)</label><input name="endMonth" type="month" required value="${esc(c.endMonth||'')}"></div></div><div class="formactions"><button class="primary">సేవ్ చేయండి</button><button type="button" class="secondary" data-cancel-editor>రద్దు</button></div></form></div>`}
 function membersPage(){return `${head('సభ్యులు',`<button class="primary" data-action="new-member">＋ కొత్త సభ్యుడు</button>`)}<div class="filters"><input class="filter" id="memberSearch" placeholder="పేరు లేదా ఫోన్‌తో వెతకండి"><select class="filter" id="memberChitFilter"><option value="">అన్ని చిట్లు</option>${db.chits.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div><div id="memberList">${memberRows()}</div><div id="editor"></div>`}
 function memberRows(){if(!db.members.length)return `<div class="panel empty">ఇంకా సభ్యులు లేరు. ముందుగా ఒక చిట్ సృష్టించండి.</div>`;return `<div class="tablewrap panel"><table><thead><tr><th>పేరు</th><th>ఫోన్</th><th>చిట్</th><th>నెల కిస్తీ</th><th>చర్యలు</th></tr></thead><tbody>${db.members.map(m=>`<tr data-member-row data-name="${esc((m.name+' '+m.phone).toLowerCase())}" data-chit="${m.chitId}"><td>${esc(m.name)}</td><td>${esc(m.phone)}</td><td>${esc(chit(m.chitId)?.name||'-')}</td><td>${money(dueFor(m,monthNow()))}</td><td><button class="secondary" data-edit-member="${m.id}">వివరాలు</button> <button class="danger" data-del-member="${m.id}">తొలగించు</button></td></tr>`).join('')}</tbody></table></div>`}
@@ -212,7 +236,30 @@ render();
 document.addEventListener('click', function(e){
   const goButton = e.target.closest('[data-go]');
   if (goButton) { e.preventDefault(); go(goButton.dataset.go); return; }
+  // చిట్‌పై క్లిక్ చేసినప్పుడు పూర్తి వివరాలు తెరవాలి
+  const viewChit = e.target.closest('[data-view-chit]');
 
+  if (viewChit) {
+    // మార్చు, తొలగించు బటన్లు యథావిధిగా పనిచేయాలి
+    if (
+      e.target.closest('[data-edit-chit]') ||
+      e.target.closest('[data-del-chit]')
+    ) {
+      return;
+    }
+
+    e.preventDefault();
+    showChitDetails(viewChit.dataset.viewChit);
+    return;
+  }
+    // చిట్ వివరాలు మూసి చిట్ల జాబితాకు తిరిగి వెళ్లడం
+  const closeDetails = e.target.closest('[data-close-chit-details]');
+  if (closeDetails) {
+    e.preventDefault();
+    const editor = document.getElementById('editor');
+    if (editor) editor.innerHTML = '';
+    return;
+  }
   const actionButton = e.target.closest('[data-action]');
   if (actionButton) {
     e.preventDefault();
@@ -315,3 +362,86 @@ document.addEventListener('submit', function(e){
   lock();
   if(!client){msg.textContent='Supabase కనెక్షన్ ప్రారంభం కాలేదు. ఇంటర్నెట్ కనెక్షన్ తనిఖీ చేయండి.';}
 })();
+```javascript
+function showChitDetails(chitId) {
+  const chit = db.chits.find(c => String(c.id) === String(chitId));
+
+  if (!chit) {
+    toast('చిట్ వివరాలు కనబడలేదు');
+    return;
+  }
+
+  const members = db.members.filter(
+    m => String(m.chitId) === String(chit.id)
+  );
+
+  const totalMonths = monthCountInclusive(
+    chit.startMonth,
+    chit.endMonth
+  );
+
+  const editor = document.getElementById('editor');
+
+  if (!editor) {
+    toast('వివరాలు చూపించే స్థలం కనబడలేదు');
+    return;
+  }
+
+  editor.innerHTML = `
+    <div class="panel">
+      <h2>📋 చిట్ పూర్తి వివరాలు</h2>
+
+      <p><b>చిట్ పేరు / నంబర్:</b> ${esc(chit.name)}</p>
+      <p><b>చిట్ మొత్తం:</b> ${money(chit.amount)}</p>
+      <p><b>చిట్‌కు ముందు నెల కిస్తీ:</b> ${money(chit.beforeRate)}</p>
+      <p><b>చిట్ తీసుకున్న తర్వాత నెల కిస్తీ:</b> ${money(chit.afterRate)}</p>
+
+      <p><b>ప్రారంభ నెల:</b> ${esc(monthLabel(chit.startMonth) || 'నమోదు చేయలేదు')}</p>
+      <p><b>ముగింపు నెల:</b> ${esc(monthLabel(chit.endMonth) || 'నమోదు చేయలేదు')}</p>
+      <p><b>మొత్తం నెలలు:</b> ${totalMonths || 'నమోదు చేయలేదు'}</p>
+      <p><b>మొత్తం సభ్యులు:</b> ${members.length}</p>
+
+      <hr>
+      <h3>👥 సభ్యుల పూర్తి జాబితా</h3>
+
+      ${members.length ? `
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>నం.</th>
+                <th>సభ్యుడి పేరు</th>
+                <th>ఫోన్ నంబర్</th>
+                <th>చేరిన నెల</th>
+                <th>చిట్ తీసుకున్న నెల</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${members.map((m, i) => `
+                <tr>
+                  <td>${i + 1}</td>
+                  <td>${esc(m.name || '-')}</td>
+                  <td>${esc(m.phone || '-')}</td>
+                  <td>${esc(monthLabel(m.joinMonth) || '-')}</td>
+                  <td>${esc(monthLabel(m.takenMonth) || '-')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : `<p>ఈ చిట్‌కు ఇంకా సభ్యులను నమోదు చేయలేదు.</p>`}
+
+      <div class="formactions">
+        <button class="secondary" data-close-chit-details>
+          ← చిట్ల జాబితాకు తిరిగి వెళ్లండి
+        </button>
+      </div>
+    </div>
+  `;
+
+  editor.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+```
